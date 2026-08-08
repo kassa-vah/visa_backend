@@ -36,3 +36,6 @@ firebase-credentials*.json
 .pytest_cache/
 .coverage
 htmlcov/
+
+#Firebase service account json
+firebase-service-account.json

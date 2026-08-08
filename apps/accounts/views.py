@@ -1,8 +1,9 @@
 """
 apps/accounts/views.py
 
-Admin-request management API.
+Admin-request management API, plus a lightweight identity endpoint.
 
+    GET  /api/v1/admin/me/                         current user's profile
     GET  /api/v1/admin/admin-requests/            list  (any approved admin)
     GET  /api/v1/admin/admin-requests/<id>/        retrieve (any approved admin)
     POST /api/v1/admin/admin-requests/              create — self-request admin access
@@ -23,11 +24,51 @@ from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from . import services
 from .models import AdminProfile
 from .permissions import IsApprovedAdmin, IsSuperAdmin
 from .serializers import AdminProfileSerializer
+
+
+class MeView(APIView):
+    """
+    Returns the current authenticated user's identity + admin status.
+
+    Any authenticated request reaching this view has already passed through
+    FirebaseAuthentication, which lazily creates the UserProfile on first
+    valid token if one doesn't exist yet. So simply calling this endpoint
+    after a frontend login/register is what causes the profile to exist on
+    the Django side — there's no separate "register with backend" step.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        profile = getattr(request.user, "profile", None)
+        if profile is None:
+            # Shouldn't normally happen — FirebaseAuthentication creates
+            # this on first successful token verification — but guard
+            # rather than 500 if it ever does.
+            return Response(
+                {"detail": "No profile is associated with this account."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        admin_profile = getattr(profile, "admin_profile", None)
+
+        return Response(
+            {
+                "id": str(profile.id),
+                "firebase_uid": profile.firebase_uid,
+                "email": request.user.email,
+                "display_name": profile.display_name,
+                "phone_number": profile.phone_number,
+                "admin_status": admin_profile.status if admin_profile else None,
+                "admin_role": admin_profile.role if admin_profile else None,
+            }
+        )
 
 
 class AdminRequestViewSet(

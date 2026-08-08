@@ -2,7 +2,7 @@
 config/settings.py
 
 Phase 1 settings. Keep this minimal and explicit — flesh out
-Firebase/Paystack/M-Pesa/Brevo config as those integrations are actually
+Paystack/M-Pesa/Brevo config as those integrations are actually
 built (see services/), not preemptively.
 """
 
@@ -30,6 +30,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "rest_framework",
+    "corsheaders",
     # Project apps
     "apps.accounts",
     "apps.activitylog",
@@ -40,6 +41,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "corsheaders.middleware.CorsMiddleware",  # must sit above CommonMiddleware
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -115,3 +117,32 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# ---------------------------------------------------------------------------
+# Firebase Admin SDK
+#
+# Points at the service account JSON downloaded from:
+# Firebase console → Project settings → Service accounts → Generate new
+# private key. Never commit that file — it's already covered by .gitignore.
+# Actual SDK initialization happens once, in apps/accounts/apps.py, so it
+# doesn't run twice under the dev-server autoreloader.
+# ---------------------------------------------------------------------------
+FIREBASE_CREDENTIALS_PATH = os.environ.get(
+    "FIREBASE_CREDENTIALS_PATH",
+    str(BASE_DIR / "config" / "firebase-service-account.json"),
+)
+
+# ---------------------------------------------------------------------------
+# CORS — allows the React/Vite frontend (running on a different port) to
+# call this API during local development. Add your deployed frontend's
+# origin here too once it exists.
+# ---------------------------------------------------------------------------
+CORS_ALLOWED_ORIGINS = os.environ.get(
+    "CORS_ALLOWED_ORIGINS",
+    "http://localhost:5173,http://127.0.0.1:5173",
+).split(",")
+
+# If the frontend needs to send cookies/auth headers with credentials mode,
+# keep this True. Firebase ID tokens go in the Authorization header, not
+# cookies, so this is mostly a safe default rather than a hard requirement.
+CORS_ALLOW_CREDENTIALS = True

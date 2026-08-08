@@ -1,0 +1,38 @@
+# Virtual environments — never portable across machines, don't commit them
+.venv/
+venv/
+visa/
+env/
+ENV/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+
+# Django
+db.sqlite3
+db.sqlite3-journal
+*.log
+media/
+staticfiles/
+
+# Environment / secrets — never commit real credentials
+.env
+*.env
+!.env.example
+
+# Firebase service account keys — never commit these
+*serviceAccountKey*.json
+firebase-credentials*.json
+
+# Editor / OS cruft
+.vscode/
+.idea/
+.DS_Store
+
+# Test artifacts
+.pytest_cache/
+.coverage
+htmlcov/

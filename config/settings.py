@@ -146,3 +146,31 @@ CORS_ALLOWED_ORIGINS = os.environ.get(
 # keep this True. Firebase ID tokens go in the Authorization header, not
 # cookies, so this is mostly a safe default rather than a hard requirement.
 CORS_ALLOW_CREDENTIALS = True
+
+# ---------------------------------------------------------------------------
+# M-Pesa (Safaricom Daraja) — apps/giving + services/payments/mpesa.py
+#
+# Sandbox creds: https://developer.safaricom.co.ke
+# MPESA_SHORTCODE/PASSKEY default to Safaricom's public sandbox till so
+# `POST /offerings` works out of the box in dev; production MUST override
+# all four via .env.
+# ---------------------------------------------------------------------------
+MPESA_ENV = os.environ.get("MPESA_ENV", "sandbox")  # "sandbox" or "production"
+MPESA_CONSUMER_KEY = os.environ.get("MPESA_CONSUMER_KEY", "")
+MPESA_CONSUMER_SECRET = os.environ.get("MPESA_CONSUMER_SECRET", "")
+MPESA_SHORTCODE = os.environ.get("MPESA_SHORTCODE", "174379")
+MPESA_PASSKEY = os.environ.get("MPESA_PASSKEY", "")
+# Must be a publicly reachable HTTPS URL Safaricom can POST to (use ngrok
+# in dev). Matches apps/giving/urls.py's "offerings/mpesa/callback" route.
+MPESA_CALLBACK_URL = os.environ.get(
+    "MPESA_CALLBACK_URL",
+    "https://example.com/offerings/mpesa/callback",
+)
+
+# ---------------------------------------------------------------------------
+# Paystack — apps/giving + services/payments/paystack.py
+#
+# Secret key stays server-side only; the matching public key
+# (VITE_PAYSTACK_PUBLIC_KEY) lives in the frontend's .env, not here.
+# ---------------------------------------------------------------------------
+PAYSTACK_SECRET_KEY = os.environ.get("PAYSTACK_SECRET_KEY", "")
